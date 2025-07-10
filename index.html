@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opay Clone UI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light grey background */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* General interactive element styling with transitions */
+        .interactive-item {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .interactive-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .interactive-button {
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .interactive-button:active {
+            transform: scale(0.98);
+        }
+
+        /* Toast Notification Styling */
+        #toast-notification {
+            visibility: hidden; /* Hidden by default */
+            min-width: 250px; /* Set a default minimum width */
+            background-color: #333; /* Black background color */
+            color: #fff; /* White text color */
+            text-align: center; /* Centered text */
+            border-radius: 8px; /* Rounded borders */
+            padding: 16px; /* Padding */
+            position: fixed; /* Sit on top of the screen */
+            z-index: 1000; /* Add a z-index if needed */
+            left: 50%; /* Center the snackbar */
+            bottom: 30px; /* 30px from the bottom */
+            transform: translateX(-50%); /* Center horizontally */
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        #toast-notification.show {
+            visibility: visible; /* Show the snackbar */
+            opacity: 1; /* Fade in */
+        }
+
+        /* Page specific styles */
+        .page {
+            display: none; /* All pages are hidden by default */
+        }
+        .page.active {
+            display: block; /* Active page is displayed */
+        }
+
+        /* Custom Card Styles for the Virtual Card */
+        .virtual-card {
+            background: linear-gradient(135deg, #28a745, #218838); /* Green gradient */
+            position: relative;
+            overflow: hidden;
+            background-image: url('https://placehold.co/400x200/28a745/218838?text=OPay+Virtual+Card+Design'); /* Placeholder for card design */
+            background-size: cover;
+            background-position: center;
+        }
+        .virtual-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 90% 90%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            transform: rotate(45deg);
+        }
+        .virtual-card .opay-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            letter-spacing: 0.05em;
+        }
+        .virtual-card .verve-logo {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 60px; /* Adjust as needed */
+            height: auto;
+        }
+
+        /* Physical Card Specific Styling */
+        .physical-card-image {
+            background-image: url('https://placehold.co/400x250/28a745/FFFFFF?text=OPay+Physical+Card'); /* Placeholder for physical card design */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .physical-card-image .opay-logo-small {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            letter-spacing: 0.05em;
+        }
+        .physical-card-image .verve-debit-logo {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 80px; /* Adjust as needed */
+            height: auto;
+        }
+        .physical-card-image .chip-icon {
+            font-size: 2.5rem;
+            color: #f0c040; /* Gold-like color for chip */
+        }
+        .physical-card-image .wave-pattern {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%; /* Adjust as needed */
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,170.7C672,149,768,139,864,154.7C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat center bottom;
+            background-size: cover;
+            opacity: 0.8;
+            z-index: 0;
+        }
+        .physical-card-image .bridge-pattern {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,160L48,176C96,192,192,224,288,224C384,224,480,192,576,170.7C672,149,768,139,864,154.7C960,171,1056,213,1152,218.7C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat center bottom;
+            background-size: cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Toast Notification -->
+    <div id="toast-notification"></div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="page active flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+            <img src="https://placehold.co/100x100/28a745/ffffff?text=OPay" alt="OPay Logo" class="mx-auto mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Welcome Back!</h2>
+            <div class="mb-4">
+                <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800">
+            </div>
+            <div class="mb-6">
+                <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800">
+            </div>
+            <button id="signInBtn" class="w-full bg-green-500 text-white py-3 rounded-full font-bold text-lg hover:bg-green-600 interactive-button shadow-lg mb-4">
+                Sign In
+            </button>
+            <p class="text-sm text-gray-600">Don't have an account? <a href="#" id="showRegister" class="text-green-600 font-semibold hover:underline">Register here</a></p>
+            <div id="loginError" class="text-red-500 text-sm mt-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="registerPage" class="page flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+            <img src="https://placehold.co/100x100/28a745/ffffff?text=OPay" alt="OPay Logo" class="mx-auto mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Create Account</h2>
+            <div class="mb-4">
+                <input type="email" id="registerEmail" placeholder="Email" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800">
+            </div>
+            <div class="mb-6">
+                <input type="password" id="registerPassword" placeholder="Password" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800">
+            </div>
+            <button id="signUpBtn" class="w-full bg-green-500 text-white py-3 rounded-full font-bold text-lg hover:bg-green-600 interactive-button shadow-lg mb-4">
+                Sign Up
+            </button>
+            <p class="text-sm text-gray-600">Already have an account? <a href="#" id="showLogin" class="text-green-600 font-semibold hover:underline">Login here</a></p>
+            <div id="registerError" class="text-red-500 text-sm mt-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- Main App Content (Initially Hidden) -->
+    <div id="appContent" class="hidden flex-grow flex flex-col">
+        <!-- Home Page Content -->
+        <div id="homePage" class="page flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Header Section -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <img src="https://placehold.co/48x48/007bff/ffffff?text=User" alt="Profile Picture" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg">
+                    <span class="text-xl font-bold text-gray-800">Hi, NURENI</span>
+                </div>
+                <div class="flex items-center gap-5 text-gray-600">
+                    <div class="relative p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('Help button clicked!')">
+                        <i class="fas fa-headset text-2xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">HELP</span>
+                    </div>
+                    <div class="p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('QR Code button clicked!')">
+                        <i class="fas fa-qrcode text-2xl"></i>
+                    </div>
+                    <div class="relative p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('Notifications button clicked!')">
+                        <i class="fas fa-bell text-2xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">12</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Balance Card -->
+            <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-5 mb-6 shadow-xl flex justify-between items-center interactive-item" onclick="showToast('Available Balance clicked!')">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-check-circle text-xl"></i>
+                        <span class="font-medium text-lg">Available Balance</span>
+                        <i class="fas fa-eye-slash text-xl ml-2 cursor-pointer opacity-80 hover:opacity-100 transition-opacity" onclick="event.stopPropagation(); showToast('Toggle balance visibility!')"></i>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-4xl font-extrabold tracking-wide">****</span>
+                        <i class="fas fa-chevron-right text-xl opacity-80"></i>
+                    </div>
+                </div>
+                <button class="bg-white text-green-600 px-5 py-2.5 rounded-full font-bold text-base shadow-md hover:bg-gray-100 interactive-button" onclick="event.stopPropagation(); showToast('Add Money button clicked!')">
+                    <i class="fas fa-plus mr-2"></i> Add Money
+                </button>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="flex justify-end mb-6">
+                <button class="text-green-600 font-semibold text-base flex items-center gap-2 hover:text-green-700 interactive-button" onclick="showToast('Transaction History clicked!')">
+                    Transaction History <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Quick Access Grid -->
+            <div class="grid grid-cols-3 gap-4 mb-6 text-center">
+                <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('To OPay clicked!')">
+                    <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-wallet text-3xl"></i>
+                    </div>
+                    <span class="text-base font-medium text-gray-800">To OPay</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('To Bank clicked!')">
+                    <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-bank text-3xl"></i>
+                    </div>
+                    <span class="text-base font-medium text-gray-800">To Bank</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Withdraw clicked!')">
+                    <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-arrow-right-from-bracket text-3xl"></i>
+                    </div>
+                    <span class="text-base font-medium text-gray-800">Withdraw</span>
+                </div>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-4 gap-4 mb-6 text-center">
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Airtime clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-signal text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Airtime</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Data clicked!')">
+                    <div class="relative bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-arrow-up text-2xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">6%</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Data</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Betting clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-trophy text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Betting</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('TV clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-tv text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">TV</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Safebox clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-lock text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Safebox</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Loan clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-hand-holding-dollar text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Loan</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Invitation clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-user-plus text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">Invitation</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('More clicked!')">
+                    <div class="bg-green-100 text-green-600 p-3.5 rounded-full mb-2 shadow-sm">
+                        <i class="fas fa-ellipsis-h text-2xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">More</span>
+                </div>
+            </div>
+
+            <!-- Promotion Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-md flex items-center gap-4 interactive-item" onclick="showToast('Promotion card clicked!')">
+                <div class="bg-green-100 text-green-600 p-4 rounded-full shadow-sm">
+                    <i class="fas fa-sack-dollar text-3xl"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-lg text-gray-800">Cash up for grabs!</p>
+                    <p class="text-sm text-gray-600">Invite friends and earn up to <span class="font-semibold">&#x20A6;5,600</span> Bonus</p>
+                </div>
+            </div>
+
+            <!-- Floating Action Button (FAB) -->
+            <button class="fixed bottom-24 right-4 bg-green-500 text-white p-4 rounded-full shadow-lg cursor-pointer hover:bg-green-600 interactive-button z-40" onclick="showToast('Click for more button clicked!')">
+                <i class="fas fa-chevron-right text-2xl"></i>
+                <span class="sr-only">Click for more</span>
+            </button>
+        </div>
+
+        <!-- Rewards Page Content -->
+        <div id="rewardsPage" class="page flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Rewards Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Rewards</h1>
+                <button class="p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('More options for Rewards clicked!')">
+                    <i class="fas fa-ellipsis-h text-xl text-gray-600"></i>
+                </button>
+            </div>
+
+            <!-- Cashback & Voucher Summary -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 shadow-md flex flex-col interactive-item" onclick="showToast('Cashback summary clicked!')">
+                    <div class="flex items-center mb-2">
+                        <span class="text-gray-600 text-sm mr-1">Cashback</span>
+                        <i class="fas fa-question-circle text-gray-400 text-xs"></i>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-500 text-2xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-green-500 text-2xl font-bold">92.80</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-md flex flex-col interactive-item" onclick="showToast('Voucher summary clicked!')">
+                    <div class="flex items-center mb-2">
+                        <span class="text-gray-600 text-sm mr-1">Voucher</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-800 text-2xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-gray-800 text-2xl font-bold">0</span>
+                        <i class="fas fa-chevron-right text-gray-400 ml-2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reward Categories Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-center">
+                <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Friday Bonus clicked!')">
+                    <img src="https://placehold.co/60x60/d4edda/28a745?text=Bonus" alt="Friday Bonus" class="w-16 h-16 mb-2">
+                    <span class="text-sm font-medium text-gray-700">Friday Bonus</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Refer Friends clicked!')">
+                    <img src="https://placehold.co/60x60/ffeeba/ffc107?text=Refer" alt="Refer Friends" class="w-16 h-16 mb-2">
+                    <span class="text-sm font-medium text-gray-700">Refer Friends</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Spin & Win clicked!')">
+                    <img src="https://placehold.co/60x60/e0f7fa/00bcd4?text=Spin" alt="Spin & Win" class="w-16 h-16 mb-2">
+                    <span class="text-sm font-medium text-gray-700">Spin & Win</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Play4Child clicked!')">
+                    <img src="https://placehold.co/60x60/f8d7da/dc3545?text=Play" alt="Play4Child" class="w-16 h-16 mb-2">
+                    <span class="text-sm font-medium text-gray-700">Play4Child</span>
+                </div>
+            </div>
+
+            <!-- Hot Vouchers Section -->
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg font-semibold text-gray-800">Hot Vouchers</span>
+                    <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">HOT</span>
+                </div>
+
+                <!-- Betting Voucher Card -->
+                <div class="bg-white rounded-2xl p-5 shadow-md interactive-item cursor-pointer" onclick="showToast('Betting Voucher clicked!')">
+                    <div class="flex items-center mb-3">
+                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-semibold mr-2">Hot</span>
+                        <span class="text-gray-800 font-semibold">Betting</span>
+                    </div>
+                    <div class="flex items-center mb-3">
+                        <span class="text-green-500 text-3xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-green-500 text-3xl font-bold">100</span>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">Bet9ja Voucher</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                        <div class="bg-green-500 h-2.5 rounded-full" style="width: 12%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 text-right mb-4">12%</p>
+                    <button class="w-full bg-green-500 text-white py-3 rounded-full font-bold text-lg hover:bg-green-600 interactive-button" onclick="event.stopPropagation(); showToast('Get Bet9ja Voucher clicked!')">
+                        Get
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-center mb-6">
+                <button class="text-green-600 font-semibold text-base flex items-center gap-2 hover:text-green-700 interactive-button" onclick="showToast('View My Voucher clicked!')">
+                    View My Voucher <i class="fas fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+            <!-- Daily Bonus Section -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Daily Bonus</h2>
+                <div class="space-y-4">
+                    <!-- Activate Biz Account -->
+                    <div class="bg-white rounded-xl p-4 shadow-md flex items-center justify-between interactive-item cursor-pointer" onclick="showToast('Activate Biz Account clicked!')">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                                <i class="fas fa-wallet text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">Activate Biz Account</p>
+                                <p class="text-sm text-gray-600">Activate Your Biz Account to earn <span class="font-bold">&#x20A6;200</span> Cashback</p>
+                            </div>
+                        </div>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-green-600 interactive-button" onclick="event.stopPropagation(); showToast('Go to Activate Biz Account!')">
+                            Go
+                        </button>
+                    </div>
+
+                    <!-- Glo Airtime -->
+                    <div class="bg-white rounded-xl p-4 shadow-md flex items-center justify-between interactive-item cursor-pointer" onclick="showToast('Glo Airtime clicked!')">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                                <i class="fas fa-mobile-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">Glo Airtime</p>
+                                <p class="text-sm text-gray-600">Buy Airtime and get up to <span class="font-bold">6%</span> Cashback</p>
+                            </div>
+                        </div>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-green-600 interactive-button" onclick="event.stopPropagation(); showToast('Go to Glo Airtime!')">
+                            Go
+                        </button>
+                    </div>
+
+                    <!-- 9 Mobile Airtime -->
+                    <div class="bg-white rounded-xl p-4 shadow-md flex items-center justify-between interactive-item cursor-pointer" onclick="showToast('9 Mobile Airtime clicked!')">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                                <i class="fas fa-mobile-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">9 Mobile Airtime</p>
+                                <p class="text-sm text-gray-600">Buy Airtime and get up to <span class="font-bold">5%</span> Cashback</p>
+                            </div>
+                        </div>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-green-600 interactive-button" onclick="event.stopPropagation(); showToast('Go to 9 Mobile Airtime!')">
+                            Go
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-6">
+                <button class="text-green-600 font-semibold text-base flex items-center gap-2 hover:text-green-700 interactive-button" onclick="showToast('View All Daily Bonus clicked!')">
+                    View All <i class="fas fa-chevron-down ml-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Finance Page Content -->
+        <div id="financePage" class="page flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Finance Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Finance</h1>
+                <button class="p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('Finance settings clicked!')">
+                    <i class="fas fa-cog text-xl text-gray-600"></i>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">from BlueRidge Microfinance Bank</p>
+
+            <!-- Savings/Loan/New Tabs -->
+            <div class="flex bg-white rounded-full p-1 mb-6 shadow-sm">
+                <button class="flex-1 text-center py-2 rounded-full text-green-600 font-semibold bg-green-50" onclick="showToast('Savings tab clicked!')">Savings</button>
+                <button class="flex-1 text-center py-2 rounded-full text-gray-600 font-semibold hover:bg-gray-100" onclick="showToast('Loan tab clicked!')">Loan</button>
+                <button class="flex-1 text-center py-2 rounded-full text-gray-600 font-semibold hover:bg-gray-100 relative" onclick="showToast('New tab clicked!')">
+                    New
+                    <span class="absolute -top-1 right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">New</span>
+                </button>
+            </div>
+
+            <!-- Total Balance & Interest -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <div class="flex items-center text-gray-600 text-sm mb-1">
+                        Total Balance <i class="fas fa-eye ml-1 text-gray-400 cursor-pointer" onclick="showToast('Toggle total balance visibility!')"></i>
+                    </div>
+                    <div class="flex items-baseline">
+                        <span class="text-green-600 text-3xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-green-600 text-3xl font-bold">1,196.08</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-gray-600 text-sm mb-1">Total Interest</div>
+                    <div class="flex items-baseline justify-end">
+                        <span class="text-green-600 text-xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-green-600 text-xl font-bold">16.71</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OWealth Card -->
+            <div class="bg-white rounded-2xl p-5 mb-6 shadow-md interactive-item cursor-pointer" onclick="showToast('OWealth card clicked!')">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-full shadow-sm">
+                        <i class="fas fa-wallet text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800">OWealth</h3>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Your daily returns. You can withdraw at any time.</p>
+                <div class="flex items-baseline">
+                    <span class="text-gray-800 text-2xl font-bold mr-1">&#x20A6;</span>
+                    <span class="text-gray-800 text-2xl font-bold">1,196.08</span>
+                </div>
+            </div>
+
+            <!-- Targets & SafeBox Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-2xl p-5 shadow-md flex flex-col interactive-item cursor-pointer" onclick="showToast('Targets card clicked!')">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-bullseye text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Targets</h3>
+                    <p class="text-sm text-gray-600">Save daily, weekly, or monthly towards your goal.</p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 shadow-md flex flex-col interactive-item cursor-pointer" onclick="showToast('SafeBox card clicked!')">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-box text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">SafeBox</h3>
+                    <p class="text-sm text-gray-600">Your daily, weekly or monthly automatic savings.</p>
+                </div>
+            </div>
+
+            <!-- Fixed & Spend & Save Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-2xl p-5 shadow-md flex flex-col interactive-item cursor-pointer" onclick="showToast('Fixed card clicked!')">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-lock text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Fixed</h3>
+                    <p class="text-sm text-gray-600 mb-4">Plans:0</p>
+                    <div class="flex items-baseline">
+                        <span class="text-gray-800 text-2xl font-bold mr-1">&#x20A6;</span>
+                        <span class="text-gray-800 text-2xl font-bold">0.00</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-5 shadow-md flex flex-col interactive-item cursor-pointer" onclick="showToast('Spend & Save card clicked!')">
+                    <div class="bg-purple-100 text-purple-600 p-3 rounded-full mb-3 shadow-sm">
+                        <i class="fas fa-piggy-bank text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Spend & Save</h3>
+                    <p class="text-sm text-gray-600">Your percentage savings every time you spend or transfer.</p>
+                </div>
+            </div>
+
+            <!-- Savings Report Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-md flex items-center gap-4 interactive-item cursor-pointer" onclick="showToast('Savings Report clicked!')">
+                <div class="bg-purple-100 text-purple-600 p-3 rounded-full shadow-sm">
+                    <i class="fas fa-chart-pie text-xl"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-lg text-gray-800">Savings Report</p>
+                    <p class="text-sm text-gray-600">Check out your savings journey so far</p>
+                </div>
+            </div>
+
+            <!-- LLM-powered Spending Analysis Section -->
+            <div class="mt-8 bg-white rounded-2xl p-5 shadow-md">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    ✨ Smart Spending Analysis
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Describe your recent spending habits or transactions, and I'll help you analyze them!
+                </p>
+                <textarea id="spendingInput" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mb-4 text-gray-800" rows="4" placeholder="e.g., 'I spent a lot on groceries this month, bought new clothes, and paid for a subscription service.'"></textarea>
+                <button id="analyzeSpendingBtn" class="w-full bg-green-500 text-white py-3 rounded-full font-bold text-lg hover:bg-green-600 interactive-button shadow-lg flex items-center justify-center gap-2">
+                    <i class="fas fa-magic"></i> Analyze Spending
+                </button>
+                <div id="analysisResult" class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-700 hidden">
+                    <p class="font-semibold mb-2">Analysis:</p>
+                    <div id="analysisText" class="whitespace-pre-wrap"></div>
+                </div>
+                <div id="analysisLoading" class="mt-4 text-center hidden">
+                    <i class="fas fa-spinner fa-spin text-green-600 text-2xl"></i>
+                    <p class="text-gray-600 mt-2">Analyzing your spending...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards Page Content -->
+        <div id="cardsPage" class="page flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Cards Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Cards</h1>
+                <button class="text-green-600 font-semibold text-sm hover:text-green-700" onclick="showToast('Q&A button clicked!')">Q&A</button>
+            </div>
+
+            <!-- Virtual/Physical Card Tabs -->
+            <div class="flex bg-white rounded-full p-1 mb-6 shadow-sm">
+                <button id="virtualCardTab" class="flex-1 text-center py-2 rounded-full text-green-600 font-semibold bg-green-50" onclick="switchCardTab('virtualCardContent')">Virtual Card</button>
+                <button id="physicalCardTab" class="flex-1 text-center py-2 rounded-full text-gray-600 font-semibold hover:bg-gray-100" onclick="switchCardTab('physicalCardContent')">Physical Card</button>
+            </div>
+
+            <!-- Virtual Card Content -->
+            <div id="virtualCardContent" class="card-content">
+                <!-- Virtual Card Display -->
+                <div class="bg-green-500 rounded-2xl p-6 mb-8 shadow-xl virtual-card mx-auto w-full max-w-sm aspect-video flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <span class="opay-logo">OPay</span>
+                    </div>
+                    <div class="text-white text-xl font-semibold tracking-wide">
+                        Virtual Card
+                    </div>
+                    <div class="flex justify-end">
+                        <img src="https://placehold.co/60x20/ffffff/ff0000?text=Verve" alt="Verve Logo" class="verve-logo">
+                    </div>
+                </div>
+
+                <!-- Card Features -->
+                <div class="space-y-6 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm flex-shrink-0">
+                            <i class="fas fa-bolt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">Instant Access</h3>
+                            <p class="text-sm text-gray-600">Apply and activate <span class="text-green-600 font-semibold cursor-pointer hover:underline" onclick="showToast('Instant activation link clicked!')">Instantly</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm flex-shrink-0">
+                            <i class="fas fa-map-marker-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">Rep Your State Of Origin</h3>
+                            <p class="text-sm text-gray-600">Get a virtual OPay card unique to your state of origin</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm flex-shrink-0">
+                            <i class="fas fa-globe text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">Online Merchant Acceptance</h3>
+                            <p class="text-sm text-gray-600">Accepted by <span class="font-semibold">40,000+</span> online merchants including JUMIA, KONGA, NETFLIX, UBER Wallet Funding and others</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm flex-shrink-0">
+                            <i class="fas fa-shield-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">Security</h3>
+                            <p class="text-sm text-gray-600"><span class="text-green-600 font-semibold cursor-pointer hover:underline" onclick="showToast('CBN license info clicked!')">CBN</span> licensed, <span class="text-green-600 font-semibold cursor-pointer hover:underline" onclick="showToast('NDIC insurance info clicked!')">NDIC</span> insured</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions Checkbox -->
+                <div class="flex items-center justify-center mb-6">
+                    <input type="checkbox" id="termsCheckbox" class="form-checkbox h-5 w-5 text-green-600 rounded focus:ring-green-500 cursor-pointer">
+                    <label for="termsCheckbox" class="ml-2 text-sm text-gray-600">Click the button below to accept <span class="text-green-600 font-semibold cursor-pointer hover:underline" onclick="showToast('Terms & Conditions link clicked!')">Terms & Conditions</span></label>
+                </div>
+
+                <!-- Get It Now Button -->
+                <button class="w-full bg-green-500 text-white py-4 rounded-full font-bold text-lg hover:bg-green-600 interactive-button shadow-lg" onclick="showToast('Get It Now button clicked!')">
+                    Get It Now
+                </button>
+            </div>
+
+            <!-- Physical Card Content -->
+            <div id="physicalCardContent" class="card-content hidden">
+                <!-- Physical Card Display -->
+                <div class="bg-green-500 rounded-2xl p-6 mb-6 shadow-xl physical-card-image mx-auto w-full max-w-sm aspect-video flex flex-col justify-between">
+                    <div class="relative z-10 flex justify-between items-start">
+                        <span class="opay-logo-small">OPay</span>
+                        <img src="https://placehold.co/80x30/ffffff/ff0000?text=VERVE+DEBIT" alt="Verve Debit Logo" class="verve-debit-logo">
+                    </div>
+                    <div class="relative z-10 flex items-center justify-center">
+                        <i class="fas fa-sim-card chip-icon"></i>
+                    </div>
+                    <div class="relative z-10 text-white text-xl font-semibold tracking-wide text-center">
+                        <p>507872******5487</p>
+                    </div>
+                    <div class="wave-pattern"></div>
+                    <div class="bridge-pattern"></div>
+                </div>
+                <div class="flex justify-center mb-6">
+                    <button class="text-green-600 font-semibold text-base flex items-center gap-2 hover:text-green-700 interactive-button" onclick="showToast('Card number details clicked!')">
+                        507872******5487 <i class="fas fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- Physical Card Features Grid -->
+                <div class="grid grid-cols-3 gap-4 mb-8 text-center">
+                    <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Details clicked!')">
+                        <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                            <i class="fas fa-info-circle text-3xl"></i>
+                        </div>
+                        <span class="text-base font-medium text-gray-800">Details</span>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Card Settings clicked!')">
+                        <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                            <i class="fas fa-cog text-3xl"></i>
+                        </div>
+                        <span class="text-base font-medium text-gray-800">Card Settings</span>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Manage Dispute clicked!')">
+                        <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                            <i class="fas fa-exclamation-circle text-3xl"></i>
+                        </div>
+                        <span class="text-base font-medium text-gray-800">Manage Dispute</span>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Manage Online Merchant clicked!')">
+                        <div class="relative bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                            <i class="fas fa-shopping-bag text-3xl"></i>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">New</span>
+                        </div>
+                        <span class="text-base font-medium text-gray-800">Manage Online Merchant</span>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center cursor-pointer interactive-item" onclick="showToast('Transactions clicked!')">
+                        <div class="bg-green-100 text-green-600 p-4 rounded-full mb-3 shadow-sm">
+                            <i class="fas fa-list-alt text-3xl"></i>
+                        </div>
+                        <span class="text-base font-medium text-gray-800">Transactions</span>
+                    </div>
+                </div>
+
+                <!-- Have a Card Transaction Dispute Banner -->
+                <div class="bg-white rounded-2xl p-5 shadow-md flex items-center justify-between interactive-item cursor-pointer" onclick="showToast('Dispute banner clicked!')" style="background-image: url('https://placehold.co/400x100/e0f7fa/00bcd4?text=Dispute+Banner'); background-size: cover; background-position: center;">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0">
+                            <!-- Placeholder for image/illustration -->
+                        </div>
+                        <div>
+                            <p class="font-bold text-lg text-gray-800">Have a Card Transaction Dispute?</p>
+                            <button class="mt-2 bg-purple-600 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-purple-700 interactive-button" onclick="event.stopPropagation(); showToast('View Dispute button clicked!')">
+                                View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!-- Me Page Content -->
+        <div id="mePage" class="page flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Me Page Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <img src="https://placehold.co/48x48/007bff/ffffff?text=User" alt="Profile Picture" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg">
+                    <span class="text-xl font-bold text-gray-800">Hi, <span id="userNameDisplay">NURENI</span></span>
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1">
+                        <i class="fas fa-medal"></i> Tier 3
+                    </span>
+                </div>
+                <div class="p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('Settings button clicked!')">
+                    <i class="fas fa-cog text-2xl text-gray-600"></i>
+                </div>
+            </div>
+
+            <!-- User ID Display -->
+            <div class="bg-white rounded-2xl p-4 mb-6 shadow-md">
+                <p class="text-sm text-gray-600 mb-2">Your User ID:</p>
+                <p id="userIdDisplay" class="text-sm font-mono text-gray-800 break-all">Loading...</p>
+                <button id="logoutBtn" class="mt-4 w-full bg-red-500 text-white py-2 rounded-full font-bold text-base hover:bg-red-600 interactive-button shadow-lg">
+                    Log Out
+                </button>
+            </div>
+
+            <!-- Total Balance Section -->
+            <div class="bg-white rounded-2xl p-5 mb-6 shadow-md">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-600 font-medium">Total Balance</span>
+                        <i class="fas fa-eye text-gray-400 cursor-pointer" onclick="showToast('Toggle total balance visibility on Me page!')"></i>
+                    </div>
+                    <div class="p-2 rounded-full hover:bg-gray-200 cursor-pointer transition-colors duration-200" onclick="showToast('Security icon clicked!')">
+                        <i class="fas fa-shield-alt text-2xl text-green-600"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-2">&#x20A6;1,196.08</div>
+                <p class="text-sm text-green-600">Interest Credited Today +&#x20A6;0.00</p>
+            </div>
+
+            <!-- Safety Tips Banner -->
+            <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between mb-6 interactive-item cursor-pointer" onclick="showToast('Safety Tips banner clicked!')">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                    <div>
+                        <p class="font-bold">4 Safety Tips</p>
+                        <p class="text-sm">Make your account more secure.</p>
+                    </div>
+                </div>
+                <button class="bg-red-500 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-red-600 interactive-button" onclick="event.stopPropagation(); showToast('View Safety Tips button clicked!')">
+                    View
+                </button>
+            </div>
+
+            <!-- Menu Items -->
+            <div class="bg-white rounded-2xl shadow-md divide-y divide-gray-200 mb-6">
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Transaction History clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-file-invoice text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Transaction History</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Account Limits clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-chart-bar text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Account Limits</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Bank Card/Account clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-credit-card text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Bank Card/Account</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('My BizPayment clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-store text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">My BizPayment</span>
+                    </div>
+                    <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold mr-2">FAST TFR</span>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Security Center clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-shield-alt text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Security Center</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Customer Service Center clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-headset text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Customer Service Center</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Invitation clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-user-plus text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Invitation</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('OPay USSD clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-mobile-alt text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">OPay USSD</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+                <div class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 interactive-item" onclick="showToast('Rate Us clicked!')">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-green-100 text-green-600 p-3 rounded-full shadow-sm">
+                            <i class="fas fa-star text-xl"></i>
+                        </div>
+                        <span class="font-medium text-gray-800">Rate Us</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Bar (Hidden on Auth Pages) -->
+        <nav id="bottomNav" class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-lg z-50 hidden">
+            <div class="flex justify-around items-center h-16">
+                <a href="#" class="nav-item flex flex-col items-center text-gray-500 hover:text-green-600 transition-colors duration-200" data-page="homePage">
+                    <i class="fas fa-home text-2xl mb-1"></i>
+                    <span class="text-xs">Home</span>
+                </a>
+                <a href="#" class="nav-item flex flex-col items-center text-gray-500 hover:text-green-600 transition-colors duration-200" data-page="rewardsPage">
+                    <i class="fas fa-gift text-2xl mb-1"></i>
+                    <span class="text-xs">Rewards</span>
+                </a>
+                <a href="#" class="nav-item flex flex-col items-center text-gray-500 hover:text-green-600 transition-colors duration-200" data-page="financePage">
+                    <i class="fas fa-chart-line text-2xl mb-1"></i>
+                    <span class="text-xs">Finance</span>
+                </a>
+                <a href="#" class="nav-item flex flex-col items-center text-gray-500 hover:text-green-600 transition-colors duration-200" data-page="cardsPage">
+                    <i class="fas fa-credit-card text-2xl mb-1"></i>
+                    <span class="text-xs">Cards</span>
+                </a>
+                <a href="#" class="nav-item flex flex-col items-center text-gray-500 hover:text-green-600 transition-colors duration-200" data-page="mePage">
+                    <i class="fas fa-user text-2xl mb-1"></i>
+                    <span class="text-xs">Me</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Global Firebase variables
+        let app;
+        let auth;
+        let userId = 'anonymous'; // Default to anonymous
+
+        // Initialize Firebase
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+
+            // Authenticate with custom token or anonymously
+            async function authenticateFirebase() {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } catch (error) {
+                    console.error("Firebase authentication error:", error);
+                    showToast("Authentication failed. Please try again.");
+                }
+            }
+
+            // Listen for auth state changes
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // User is signed in
+                    userId = user.uid;
+                    console.log("User is signed in:", userId);
+                    document.getElementById('userIdDisplay').textContent = userId;
+                    document.getElementById('userNameDisplay').textContent = user.email ? user.email.split('@')[0] : 'User'; // Display part of email or default
+                    showAppContent();
+                    activatePage('homePage'); // Go to home page after login
+                } else {
+                    // User is signed out
+                    userId = 'anonymous';
+                    console.log("User is signed out.");
+                    showAuthPages();
+                }
+            });
+
+            // Call authentication on app start
+            authenticateFirebase();
+
+        } else {
+            console.warn("Firebase config not found. Running without Firebase authentication.");
+            // If no Firebase config, show app content directly (for development without auth)
+            document.addEventListener('DOMContentLoaded', () => {
+                showAppContent();
+                activatePage('homePage');
+                document.getElementById('userIdDisplay').textContent = 'Firebase not configured';
+                document.getElementById('userNameDisplay').textContent = 'Guest';
+            });
+        }
+
+
+        // --- UI and Page Management ---
+        const loginPage = document.getElementById('loginPage');
+        const registerPage = document.getElementById('registerPage');
+        const appContent = document.getElementById('appContent');
+        const bottomNav = document.getElementById('bottomNav');
+
+        const showRegisterLink = document.getElementById('showRegister');
+        const showLoginLink = document.getElementById('showLogin');
+
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        const signInBtn = document.getElementById('signInBtn');
+        const loginErrorDiv = document.getElementById('loginError');
+
+        const registerEmailInput = document.getElementById('registerEmail');
+        const registerPasswordInput = document.getElementById('registerPassword');
+        const signUpBtn = document.getElementById('signUpBtn');
+        const registerErrorDiv = document.getElementById('registerError');
+
+        const logoutBtn = document.getElementById('logoutBtn');
+
+
+        function showAuthPages() {
+            loginPage.classList.remove('hidden');
+            registerPage.classList.add('hidden');
+            appContent.classList.add('hidden');
+            bottomNav.classList.add('hidden');
+        }
+
+        function showAppContent() {
+            loginPage.classList.add('hidden');
+            registerPage.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            bottomNav.classList.remove('hidden');
+        }
+
+        function showLoginSection() {
+            loginPage.classList.remove('hidden');
+            registerPage.classList.add('hidden');
+            loginErrorDiv.classList.add('hidden'); // Clear previous errors
+            registerErrorDiv.classList.add('hidden'); // Clear previous errors
+        }
+
+        function showRegisterSection() {
+            registerPage.classList.remove('hidden');
+            loginPage.classList.add('hidden');
+            loginErrorDiv.classList.add('hidden'); // Clear previous errors
+            registerErrorDiv.classList.add('hidden'); // Clear previous errors
+        }
+
+        function showAuthError(errorDiv, message) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000); // Hide error after 5 seconds
+        }
+
+        // Event Listeners for Auth UI
+        if (showRegisterLink) {
+            showRegisterLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showRegisterSection();
+            });
+        }
+
+        if (showLoginLink) {
+            showLoginLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showLoginSection();
+            });
+        }
+
+        if (signInBtn && auth) {
+            signInBtn.addEventListener('click', async () => {
+                const email = loginEmailInput.value;
+                const password = loginPasswordInput.value;
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showToast('Logged in successfully!');
+                } catch (error) {
+                    console.error("Login error:", error);
+                    let errorMessage = "Failed to log in. Please check your credentials.";
+                    if (error.code === 'auth/invalid-email') {
+                        errorMessage = "Invalid email format.";
+                    } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        errorMessage = "Invalid email or password.";
+                    } else if (error.code === 'auth/too-many-requests') {
+                        errorMessage = "Too many failed login attempts. Please try again later.";
+                    }
+                    showAuthError(loginErrorDiv, errorMessage);
+                }
+            });
+        }
+
+        if (signUpBtn && auth) {
+            signUpBtn.addEventListener('click', async () => {
+                const email = registerEmailInput.value;
+                const password = registerPasswordInput.value;
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showToast('Account created and logged in successfully!');
+                } catch (error) {
+                    console.error("Registration error:", error);
+                    let errorMessage = "Failed to create account.";
+                    if (error.code === 'auth/email-already-in-use') {
+                        errorMessage = "Email already in use. Please use a different email or log in.";
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMessage = "Invalid email format.";
+                    } else if (error.code === 'auth/weak-password') {
+                        errorMessage = "Password is too weak. Please choose a stronger password.";
+                    }
+                    showAuthError(registerErrorDiv, errorMessage);
+                }
+            });
+        }
+
+        if (logoutBtn && auth) {
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    showToast('Logged out successfully!');
+                } catch (error) {
+                    console.error("Logout error:", error);
+                    showToast('Failed to log out. Please try again.');
+                }
+            });
+        }
+
+
+        // JavaScript for toast notifications
+        let toastTimeout;
+
+        function showToast(message) {
+            const toast = document.getElementById("toast-notification");
+            toast.textContent = message;
+            toast.classList.add("show");
+
+            clearTimeout(toastTimeout);
+
+            toastTimeout = setTimeout(function(){
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        // JavaScript for main page switching
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.nav-item');
+            const pages = document.querySelectorAll('.page');
+
+            // Function to activate a page and update navigation styling
+            function activatePage(pageId) {
+                // Deactivate all pages within appContent
+                document.querySelectorAll('#appContent .page').forEach(page => page.classList.remove('active'));
+                // Activate the selected page
+                const activePage = document.getElementById(pageId);
+                if (activePage) {
+                    activePage.classList.add('active');
+                }
+
+                // Update navigation active state
+                navItems.forEach(item => {
+                    if (item.dataset.page === pageId) {
+                        item.classList.add('text-green-600', 'font-bold');
+                        item.classList.remove('text-gray-500');
+                    } else {
+                        item.classList.remove('text-green-600', 'font-bold');
+                        item.classList.add('text-gray-500');
+                    }
+                });
+            }
+
+            // Add click listeners to navigation items
+            navItems.forEach(item => {
+                item.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent default link behavior
+                    const pageId = item.dataset.page;
+                    activatePage(pageId);
+                    showToast(`${item.querySelector('span').textContent} clicked!`);
+                });
+            });
+
+            // Card tab switching logic
+            const virtualCardTab = document.getElementById('virtualCardTab');
+            const physicalCardTab = document.getElementById('physicalCardTab');
+            const virtualCardContent = document.getElementById('virtualCardContent');
+            const physicalCardContent = document.getElementById('physicalCardContent');
+
+            function switchCardTab(contentId) {
+                console.log(`Attempting to switch to ${contentId}`); // Debugging log
+
+                // Hide all card content sections
+                virtualCardContent.classList.add('hidden');
+                physicalCardContent.classList.add('hidden');
+
+                // Show the selected card content section
+                const targetContent = document.getElementById(contentId);
+                if (targetContent) {
+                    targetContent.classList.remove('hidden');
+                    console.log(`Successfully displayed ${contentId}`); // Debugging log
+                } else {
+                    console.error(`Error: Could not find content div with ID: ${contentId}`); // Error log
+                }
+
+
+                // Update tab active state
+                virtualCardTab.classList.remove('bg-green-50', 'text-green-600');
+                virtualCardTab.classList.add('text-gray-600', 'hover:bg-gray-100');
+                physicalCardTab.classList.remove('bg-green-50', 'text-green-600');
+                physicalCardTab.classList.add('text-gray-600', 'hover:bg-gray-100');
+
+                if (contentId === 'virtualCardContent') {
+                    virtualCardTab.classList.add('bg-green-50', 'text-green-600');
+                    virtualCardTab.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                } else {
+                    physicalCardTab.classList.add('bg-green-50', 'text-green-600');
+                    physicalCardTab.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                }
+            }
+
+            // Set initial active card tab
+            switchCardTab('virtualCardContent'); // Virtual Card is active by default
+
+            // LLM Integration for Spending Analysis
+            const spendingInput = document.getElementById('spendingInput');
+            const analyzeSpendingBtn = document.getElementById('analyzeSpendingBtn');
+            const analysisResult = document.getElementById('analysisResult');
+            const analysisText = document.getElementById('analysisText');
+            const analysisLoading = document.getElementById('analysisLoading');
+
+            if (analyzeSpendingBtn) { // Ensure button exists before adding listener
+                analyzeSpendingBtn.addEventListener('click', async () => {
+                    const prompt = spendingInput.value.trim();
+                    if (!prompt) {
+                        showToast('Please enter some spending details to analyze.');
+                        return;
+                    }
+
+                    analysisResult.classList.add('hidden');
+                    analysisLoading.classList.remove('hidden');
+                    analysisText.textContent = ''; // Clear previous results
+
+                    try {
+                        let chatHistory = [];
+                        chatHistory.push({ role: "user", parts: [{ text: `Analyze the following spending details and provide insights or suggestions. Keep the response concise and helpful, focusing on financial advice. Spending: "${prompt}"` }] });
+                        const payload = { contents: chatHistory };
+                        const apiKey = ""; // Leave as empty string for Canvas to provide
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            analysisText.textContent = text;
+                            analysisResult.classList.remove('hidden');
+                        } else {
+                            analysisText.textContent = 'Could not get analysis. Please try again.';
+                            analysisResult.classList.remove('hidden');
+                            console.error('Gemini API response structure unexpected:', result);
+                        }
+                    } catch (error) {
+                        analysisText.textContent = 'Error analyzing spending. Please try again later.';
+                        analysisResult.classList.remove('hidden');
+                        console.error('Error calling Gemini API:', error);
+                    } finally {
+                        analysisLoading.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
